@@ -1,4 +1,4 @@
-# Code&Encode Morse Code /w SDL2 Graphics
+# Encode&Decode Morse Code /w SDL2 Graphics
 ## Authors: Raphael Dray, Alexandre de Sevin.
 > This program encode & decode morse code.
 > It can be open in **terminal** or in a window using **SDL2**.
