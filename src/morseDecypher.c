@@ -11,7 +11,6 @@ Arbre new_node()
 
 	node->dot = NULL;
 	node->dash = NULL;
-	node->parent = NULL;
 	node->character = '\0';
 
 	return node;
@@ -42,19 +41,9 @@ Arbre add_char(Arbre * tree, char * morse, char c)
 	}
 
 	if(*morse == DOT)
-	{
-		//Noeud * lchild;
-		/*lchild =*/return add_char(&(*tree)->dot, ++morse, c);
-		//lchild->parent = *tree;
-		//return lchild;
-	}
+		return add_char(&(*tree)->dot, ++morse, c);
 	if(*morse == DASH)
-	{
-		/*Noeud * rchild;*/
-		/*rchild =*/return add_char(&(*tree)->dash, ++morse, c);
-		//rchild->parent = *tree;
-		//return rchild;
-	}
+		return add_char(&(*tree)->dash, ++morse, c);
 	return NULL;
 }
 
@@ -104,18 +93,51 @@ char * morseDecypher(Arbre tree, char * morse)
 	return parsed;
 }
 
-void inorder(Arbre tree)
+char * morseCypher(Arbre tree, char * text)
 {
-	if(tree)
+	int i = 0, find = 0;
+	char *parsed = malloc(sizeof(char) * 4 * (strlen(text)+1));
+	if(!parsed)
 	{
-		inorder(tree->dot);
-		printf("Node: %c, ", tree->character);
-		if(tree->parent == NULL)
-			printf("Parent: NULL \n");
-		else
-			printf("Parent: %p \n", tree->parent);
-		inorder(tree->dash);
+		fprintf(stderr, "Unable to alloc memory\n");
+		return NULL;
 	}
+	size_t size = 54;
+	char *morseCode[] = {".-\0", "-...\0", "-.-.\0", "-..\0", ".\0", "..-.\0", "--.\0",
+						   "....\0", "..\0", ".---\0", "-.-\0", ".-..\0", "--\0", "-.\0",
+						   "---\0", ".--.\0", "--.-\0", ".-.\0", "...\0", "-\0", "..-\0",
+						   "...-\0", ".--\0", "-..-\0", "-.--\0", "--..\0", "-...-\0",
+						   ".----\0", "..---\0", "...--\0", "....-\0", ".....\0", 
+						   "-....\0", "--...\0", "---..\0", "----.\0", "-----\0",
+						   ".-.-.-\0", "--..--\0", "..--..\0", "-..-.\0", ".----.\0",
+						   "-.-.--\0", "-.-.-.\0", "---...\0", ".-.-.\0", "-....-\0",
+						   "-...-\0", "-.--.\0", "-.--.-\0", "..--.-\0", "...-..-\0",
+						   ".-..-.\0", ".--.-.\0", ".-...\0"
+							};
+	char * current_parsed = parsed;
+	while(text[i])
+	{
+		char c = toupper(text[i]);
+		for(int k = 0; k < size; k++)
+		{
+			if(seekChar(tree, morseCode[k]) == c)
+			{
+				find = 1;
+				strcat(current_parsed, morseCode[k]);
+				break;
+			}
+		}
+		if(!find)
+			strcat(current_parsed, "?\0");
+
+
+		i++;
+		if(text[i] != '\0')
+			strcat(current_parsed, "_\0");
+		find = 0;
+
+	}
+	return parsed;
 }
 
 Arbre initForMorse()
@@ -179,49 +201,11 @@ Arbre initForMorse()
 	return tree;	
 }
 
-bool isDot(Arbre tree)
-{
-	return (tree->parent->dot == tree);
-}
-
-/*Arbre setParent(Arbre tree)
-{
-	Arbre temp = tree;
-	while(temp)
-	{
-		Arbre parent = temp;
-		temp->dot->parent = parent;
-		if(temp->dot)
-			temp = temp->dot;
-		else if(temp->dash)
-			temp = temp->dash;
-		else
-		{
-			temp = temp->parent;
-		}
-	}
-}*/
-
-/*void bfs(Arbre tree, char queue[60], char c, int * front, int * before)
-{
-	c = tree->character;
-	if((*front <= *before) && (tree->character == queue[*front]))
-	{
-		if(tree->dash)
-			queue[++(*before)] = tree->dash->character;
-		queue[++(*before)] = tree->dot->character;
-		(*front)++;
-	}
-	if(tree->dash)
-		bfs(tree->dash, queue, c, front, before);
-	if(tree->dot)
-		bfs(tree->dot, queue, c, front, before);
-}*/
-
 void morseTable()
 {
 	clrscr();
-	//for(int i = 0; i < 27; i++)
+	/*for(int i = 0; i < 26; i++)
+			puts("%s\t%c\t\t%s\t%c", , (char)(65+i), str2, chara2);*/
 	puts(".-\tA\t\t.----\t1");
 	puts("-...\tB\t\t..---\t2");
 	puts("-.-.\tC\t\t...--\t3");

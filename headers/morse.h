@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -20,7 +21,6 @@ typedef struct Noeud
 {
 	struct Noeud * dot;
 	struct Noeud * dash;
-	struct Noeud * parent;
 	char character;
 }Noeud, *Arbre;
 
@@ -29,10 +29,8 @@ Arbre add_char(Arbre * tree, char * morse, char c);
 Arbre initForMorse();
 char seekChar(Arbre tree, char * morse);
 char * morseDecypher(Arbre tree, char * morse);
+char * morseCypher(Arbre tree, char * text);
 bool isDot(Arbre tree);
 void morseTable();
 void destroyTree(Arbre tree);
-void inorder(Arbre tree);
-Arbre seekParent(Arbre tree, Arbre parent, Arbre find);
-Arbre setParent(Arbre tree);
 #endif

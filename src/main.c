@@ -3,8 +3,7 @@
 int main(int argc, char ** argv)
 {
 	Arbre tree = initForMorse();
-	inorder(tree);
-	/*if(argc <= 1)
+	if(argc <= 1)
 	{
 		fprintf(stderr, "Usage: %s [Option]\n", argv[0]);
 		fprintf(stderr, "Use --help as an option to open the help list\n");
@@ -29,7 +28,18 @@ int main(int argc, char ** argv)
 		return EXIT_FAILURE;
 	}
 	else if(strcmp(argv[1], "-d") == 0)
-		puts(morseDecypher(tree, argv[2]));*/
+		puts(morseDecypher(tree, argv[2]));
+	else if(strcmp(argv[1], "-e") == 0)
+	{
+		printf("%s", (morseCypher(tree, argv[2])));
+		if(argc > 2)
+			for(int i = 3; i < argc; i++)
+			{
+				printf("%c%s%c", SEP,morseCypher(tree, " \0"), SEP);
+				printf("%s", morseCypher(tree, argv[i]));
+			}
+		printf("\n");
+	}
 	destroyTree(tree), tree = NULL;
 	return EXIT_SUCCESS;
 }
