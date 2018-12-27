@@ -16,6 +16,15 @@
 #define DOT '.'
 #define DASH '-'
 #define SEP '_'
+#define GRAPHIC 18
+#define color(param) printf("\033[1;%dm", param)
+#define resetColor printf("\033[0m")
+#define RED 31
+#define GREEN 32
+#define YELLOW 33
+#define BLUE 34
+#define MAGENTA 35
+#define CYAN 36
 
 typedef struct Noeud 
 {
@@ -30,7 +39,7 @@ Arbre initForMorse();
 char seekChar(Arbre tree, char * morse);
 char * morseDecypher(Arbre tree, char * morse);
 char * morseCypher(Arbre tree, char * text);
-bool isDot(Arbre tree);
-void morseTable();
+void morseTable(Arbre tree);
 void destroyTree(Arbre tree);
+int mainProg(Arbre tree, int argc, char ** argv);
 #endif

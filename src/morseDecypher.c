@@ -83,8 +83,10 @@ char * morseDecypher(Arbre tree, char * morse)
 
 		else
 			*current = '\0';
-
-		*current_parsed = seekChar(tree, morse);
+		if(strcmp(morse, " ") != 0)
+			*current_parsed = seekChar(tree, morse);
+		else
+			*current_parsed = ' ';
 		++current_parsed;
 		++current;
 		morse = current;
@@ -112,12 +114,17 @@ char * morseCypher(Arbre tree, char * text)
 						   ".-.-.-\0", "--..--\0", "..--..\0", "-..-.\0", ".----.\0",
 						   "-.-.--\0", "-.-.-.\0", "---...\0", ".-.-.\0", "-....-\0",
 						   "-...-\0", "-.--.\0", "-.--.-\0", "..--.-\0", "...-..-\0",
-						   ".-..-.\0", ".--.-.\0", ".-...\0"
-							};
+						   ".-..-.\0", ".--.-.\0", ".-...\0"};
 	char * current_parsed = parsed;
 	while(text[i])
 	{
 		char c = toupper(text[i]);
+		if(c == ' ')
+		{
+			strcat(current_parsed, " \0");
+			i++;
+			continue;
+		}
 		for(int k = 0; k < size; k++)
 		{
 			if(seekChar(tree, morseCode[k]) == c)
@@ -132,7 +139,7 @@ char * morseCypher(Arbre tree, char * text)
 
 
 		i++;
-		if(text[i] != '\0')
+		if(text[i] != '\0' && text[i] != ' ')
 			strcat(current_parsed, "_\0");
 		find = 0;
 
@@ -196,27 +203,74 @@ Arbre initForMorse()
 	add_char(&tree, "...-..-\0", '$');
 	add_char(&tree, ".-..-.\0", '"');
 	add_char(&tree, ".--.-.\0", '@');
-	add_char(&tree, ".-...\0", '&');
-	add_char(&tree, "-...-\0", ' ');
 	return tree;	
 }
 
-void morseTable()
+void morseTable(Arbre tree)
 {
 	clrscr();
-	/*for(int i = 0; i < 26; i++)
-			puts("%s\t%c\t\t%s\t%c", , (char)(65+i), str2, chara2);*/
-	puts(".-\tA\t\t.----\t1");
-	puts("-...\tB\t\t..---\t2");
-	puts("-.-.\tC\t\t...--\t3");
-	puts("-..\tD\t\t....-\t4");
-	puts(".\tE\t\t.....\t5");
-	puts("..-.\tF\t\t-....\t6");
-	puts("--.\tG\t\t--...\t7");
-	puts("....\tH\t\t---..\t8");
-	puts("..\tI\t\t----.\t9");
-	puts(".---\tJ\t\t-----\t0");
-	puts("-.-");
+	color(BLUE);
+	puts("\t-----------------");
+	puts("\t|  MORSE TABLE  |");
+	printf("\t-----------------\n\n");
+	resetColor;
+	int j;
+	char c;
+	color(MAGENTA);
+	for(int i = 0; i < 26; i++)
+	{
+		char str1[2], str2[2];
+		sprintf(str1, "%c", (char)(65+i));
+		if(i < 10)
+		{
+			j = i;
+			c = (char)(48 + j);
+		}
+		else if(i < 12 && i > 9)
+		{
+			j = i % 10;
+			c = (char)(33 + j);
+		}
+		else if(i < 15 && i > 11)
+		{
+			j = i - 12;
+			c = (char)(39 + j);
+		}
+		else if(i < 19 && i > 14)
+		{
+			j = i - 15;
+			c = (char)(43 + j);
+		}
+		else if(i < 21 && i > 18)
+		{
+			j = i - 19;
+			c = (char)(58 + j);
+		}
+		else if(i < 23 && i > 20)
+		{
+			j = i - 21;
+			c = (char)(63 + j);
+		}
+		if(i >= 23)
+		{
+			switch(i)
+			{
+				case 23:
+					c = '=';
+				break;
+				case 24:
+					c = '$';
+				break;
+				case 25:
+					c = '_';
+				break;
+			}
+		}
+		sprintf(str2, "%c", c);		
+		printf("%s\t%c\t\t%s\t%c\n", morseCypher(tree, str1) , (char)(65+i), 
+									 morseCypher(tree, str2), c);
+	}
+	resetColor;
 }
 
 void destroyTree(Arbre tree)
@@ -227,4 +281,66 @@ void destroyTree(Arbre tree)
 		destroyTree(tree->dash);
 		free(tree);
 	}
+}
+
+int mainProg(Arbre tree, int argc, char ** argv)
+{
+	if(argc <= 1)
+	{
+		color(RED);
+		printf("Usage: %s [Option]\n", argv[0]);
+		fprintf(stderr, "Use --help as an option to open the help list\n");
+		resetColor;
+		return EXIT_FAILURE;
+	}
+	if(strcmp(argv[1], "--help") == 0)
+	{
+		color(YELLOW);
+		puts("Bienvenu dans l'aide de Code&EncodeMorse, voici les options utilisables:");
+		printf("Utilisation: %s [Options]\n", argv[0]);
+		printf("Vous pouvez utiliser les espaces afin de séparer les mots et utiliser '_' pour coller les lettres en morse\n");
+		printf("Exemple: %s -d ._. ..\n", argv[0]);
+		color(CYAN);
+		puts("-d [morse]\t\tDécode le morse passé en paramètre");
+		puts("-e [texte]\t\tEncode le texte en morse");
+		puts("-g\t\t\tPassage en affichage graphique");
+		puts("-a\t\t\tAffichage de la table de morse");
+		puts("--help\t\t\tAffiche cette aide");
+		resetColor;
+	}
+	else if(strcmp(argv[1], "-a") == 0)
+		morseTable(tree);
+	else if(strcmp(argv[1], "-g") == 0)
+		return GRAPHIC;
+	else if(argc <= 2 || (strcmp(argv[1], "-d") != 0 && strcmp(argv[1], "-e") != 0))
+	{
+		color(RED);
+		printf("Usage: %s [Option]\n", argv[0]);
+		fprintf(stderr, "Use --help as an option to open the help list\n");
+		resetColor;
+		return EXIT_FAILURE;
+	}
+	else if(strcmp(argv[1], "-d") == 0)
+	{
+		printf("%s",morseDecypher(tree, argv[2]));
+		if(argc > 2)
+			for(int i = 3; i < argc; i++)
+			{
+				printf("%s",morseDecypher(tree, " \0"));
+				printf("%s",morseDecypher(tree, argv[i]));
+			}
+		printf("\n");
+	}
+	else if(strcmp(argv[1], "-e") == 0)
+	{
+		printf("%s", (morseCypher(tree, argv[2])));
+		if(argc > 2)
+			for(int i = 3; i < argc; i++)
+			{
+				printf("%s",morseCypher(tree, " \0"));
+				printf("%s", morseCypher(tree, argv[i]));
+			}
+		printf("\n");
+	}
+	return EXIT_SUCCESS;
 }
