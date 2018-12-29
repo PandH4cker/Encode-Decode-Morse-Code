@@ -1,110 +1,116 @@
 #include "../headers/morse.h"
 
+/** Création d'un noeud **/
 Arbre new_node()
 {
 	Noeud * node = malloc(sizeof(*node));
-	if(!node)
+	if(!node) //Si l'allocation ne s'est pas faite
 	{
 		fprintf(stderr, "Node creation failure\n");
 		return NULL;
 	}
 
+	//Initialisation de la structure du noeud
 	node->dot = NULL;
 	node->dash = NULL;
 	node->character = '\0';
 
 	return node;
 }
-
+/***********************************************************************/
+/** Ajout d'un caractère dans l'arbre **/
 Arbre add_char(Arbre * tree, char * morse, char c)
 {
-	if(!morse || !tree)
+	if(!morse || !tree) //Si l'arbre est vide ou que la chaîne est vide
 	{
 		fprintf(stderr, "Unable to add a character.\n");
 		return NULL;
 	}
 
-	if(!*tree)
+	if(!*tree) //Si le noeud n'existe pas
 	{
-		*tree = new_node(*tree);
-		if(!*tree)
+		*tree = new_node(*tree); //On le crée
+		if(!*tree) //Si le noeud ne s'est pas créé
 		{
 			fprintf(stderr, "Unable to create node\n");
 			return NULL;
 		}
 	}
 
-	if(!*morse)
+	if(!*morse) //Si on arrive à la fin de la chaîne (\0)
 	{
-		(*tree)->character = c;
+		(*tree)->character = c; //On ajoute le caractère au noeud de l'arbre où on se trouve
 		return *tree;
 	}
 
-	if(*morse == DOT)
+	if(*morse == DOT) //Si le caractère est un point
 		return add_char(&(*tree)->dot, ++morse, c);
-	if(*morse == DASH)
+	if(*morse == DASH) //Si le caractère est un tiret
 		return add_char(&(*tree)->dash, ++morse, c);
 	return NULL;
 }
-
+/***********************************************************************/
+/** Recherche du caractère dans l'arbre **/
 char seekChar(Arbre tree, char * morse)
 {
-	if(!tree)
+	if(!tree) //Si l'arbre est vide
 		return '?';
-	if(!*morse)
+	if(!*morse) //Si on arrive à la fin de la chaîne de caractère
 		return tree->character;
-	if(*morse == DOT)
+	if(*morse == DOT) //Si le caractère est un point
 		return seekChar(tree->dot, ++morse);
-	if(*morse == DASH)
+	if(*morse == DASH) //Si le caractère est un tiret
 		return seekChar(tree->dash, ++morse);
 	return '?';
 }
-
+/***********************************************************************/
+/** Décodage du code morse **/
 char * morseDecypher(Arbre tree, char * morse)
 {
-	char * current = morse;
-	char * parsed = malloc(sizeof(char) * (strlen(morse)+1));
+	char * current = morse; //Pointeur sur le morse
+	char * parsed = malloc(sizeof(char) * (strlen(morse)+1)); //Allocation de mémoire pour le résultat
 
-	if(!parsed)
+	if(!parsed) //Si l'allocation ne s'est pas faite
 	{
 		fprintf(stderr, "Unable to alloc memory\n");
 		return NULL;
 	}
 
-	char * current_parsed = parsed;
+	char * current_parsed = parsed; //Pointeur sur le résultat
 	int done = 0;
-	while(!done)
+	while(!done) //Tant que ce n'est pas fini
 	{
-		while(*current && *current != SEP)
+		while(*current && *current != SEP) //On parcours le morse jusqu'au séparateur
 			++current;
 
-		if(!*current)
+		if(!*current) //Si on arrive à la fin du morse on a fini
 			done = 1;
 
-		else
+		else //Sinon on réduit la chaine jusqu'où on est arrivé
 			*current = '\0';
-		if(strcmp(morse, " ") != 0)
+		if(strcmp(morse, " ") != 0) //Si ce n'est pas un espace
 			*current_parsed = seekChar(tree, morse);
-		else
+		else //Sinon
 			*current_parsed = ' ';
 		++current_parsed;
 		++current;
-		morse = current;
+		morse = current; //On fait avancer notre chaine jusqu'où le pointeur est
 	}
-	*current_parsed = '\0';
+	*current_parsed = '\0'; //On s'assure de fermer la chaine avant de retourner le résultat
 	return parsed;
 }
-
+/***********************************************************************/
+/** Encodage du code morse **/
 char * morseCypher(Arbre tree, char * text)
 {
 	int i = 0, find = 0;
-	char *parsed = malloc(sizeof(char) * 4 * (strlen(text)+1));
-	if(!parsed)
+	char *parsed = malloc(sizeof(char) * 4 * (strlen(text)+1)); //Allocation de mémoire pour le résultat
+	if(!parsed) //Si l'allocation ne s'est pas faite
 	{
 		fprintf(stderr, "Unable to alloc memory\n");
 		return NULL;
 	}
-	size_t size = 54;
+	size_t size = 54; //Définition du nombre de code morse dans le tableau
 	char *morseCode[] = {".-\0", "-...\0", "-.-.\0", "-..\0", ".\0", "..-.\0", "--.\0",
 						   "....\0", "..\0", ".---\0", "-.-\0", ".-..\0", "--\0", "-.\0",
 						   "---\0", ".--.\0", "--.-\0", ".-.\0", "...\0", "-\0", "..-\0",
@@ -115,41 +121,43 @@ char * morseCypher(Arbre tree, char * text)
 						   "-.-.--\0", "-.-.-.\0", "---...\0", ".-.-.\0", "-....-\0",
 						   "-...-\0", "-.--.\0", "-.--.-\0", "..--.-\0", "...-..-\0",
 						   ".-..-.\0", ".--.-.\0", ".-...\0"};
-	char * current_parsed = parsed;
-	while(text[i])
+	char * current_parsed = parsed; //Pointeur sur le résultat
+	while(text[i]) //Tant qu'on n'est pas arrivé à la fin de la chaîne
 	{
-		char c = toupper(text[i]);
-		if(c == ' ')
+		char c = toupper(text[i]); //On assigne la lettre en majuscule au caractère
+		if(c == ' ') //Si c'est un espace
 		{
-			strcat(current_parsed, " \0");
+			strcat(current_parsed, " \0"); //On concatène l'espace avec la chaîne actuel
 			i++;
-			continue;
+			continue; //On passe tout le code qui suit
 		}
-		for(int k = 0; k < size; k++)
+		for(int k = 0; k < size; k++) //On parcours tout le tableau de morse
 		{
-			if(seekChar(tree, morseCode[k]) == c)
+			if(seekChar(tree, morseCode[k]) == c) //On vérifie si on trouve le caractère correspondant au code morse
 			{
 				find = 1;
-				strcat(current_parsed, morseCode[k]);
-				break;
+				strcat(current_parsed, morseCode[k]); //On concatène avec la chaîne existante le code morse trouvé
+				break; //On sort de la boucle
 			}
 		}
-		if(!find)
-			strcat(current_parsed, "?\0");
+		if(!find) //Si on n'a pas trouvé d'equivalent
+			strcat(current_parsed, "?\0"); //On concatène avec un point d'intérrogation
 
 
 		i++;
-		if(text[i] != '\0' && text[i] != ' ')
-			strcat(current_parsed, "_\0");
+		if(text[i] != '\0' && text[i] != ' ') //Si on n'est pas arrivé à la fin de la chaîne et que ce n'est pas un espace
+			strcat(current_parsed, "_\0"); //On ajoute le séparateur
 		find = 0;
 
 	}
 	return parsed;
 }
-
+/***********************************************************************/
+/** Construction de l'arbre **/
 Arbre initForMorse()
 {
 	Arbre tree = NULL;
+	/* On ajoute tout les caractère de la table de morse */
 	add_char(&tree, ".-\0", 'A');
 	add_char(&tree, "-...\0", 'B');
 	add_char(&tree, "-.-.\0", 'C');
@@ -205,22 +213,24 @@ Arbre initForMorse()
 	add_char(&tree, ".--.-.\0", '@');
 	return tree;	
 }
-
+/***********************************************************************/
+/** Affichage de la table morse **/
 void morseTable(Arbre tree)
 {
-	clrscr();
-	color(BLUE);
+	clrscr(); //On efface l'affichage précédent
+	color(BLUE); //On passe l'affichage en bleu
 	puts("\t-----------------");
 	puts("\t|  MORSE TABLE  |");
 	printf("\t-----------------\n\n");
-	resetColor;
+	resetColor; //On réinitialise la couleur du terminal
 	int j;
 	char c;
-	color(MAGENTA);
-	for(int i = 0; i < 26; i++)
+	color(MAGENTA); //On passe l'affichage en magenta
+	for(int i = 0; i < 26; i++) //On parcours la moitié des caractères de l'arbre en 2 fois (2x26 caractères)
 	{
 		char str1[2], str2[2];
-		sprintf(str1, "%c", (char)(65+i));
+		sprintf(str1, "%c", (char)(65+i)); //On stocke dans une chaine le résultat (A-Z)
+		/* Petit calcul amusant pour afficher les caractère :) */
 		if(i < 10)
 		{
 			j = i;
@@ -266,53 +276,55 @@ void morseTable(Arbre tree)
 				break;
 			}
 		}
-		sprintf(str2, "%c", c);		
+		sprintf(str2, "%c", c);	//On stocke dans une chaîne le caractère	
 		printf("%s\t%c\t\t%s\t%c\n", morseCypher(tree, str1) , (char)(65+i), 
-									 morseCypher(tree, str2), c);
+									 morseCypher(tree, str2), c); //On affiche une table de deux colonnes
 	}
-	resetColor;
+	resetColor; //On réinitialise la couleur du terminal
 }
-
+/***********************************************************************/
+/** Destruction de l'arbre **/
 void destroyTree(Arbre tree)
 {
-	if(tree)
+	if(tree) //Si l'arbre n'est pas vide
 	{
 		destroyTree(tree->dot);
 		destroyTree(tree->dash);
 		free(tree);
 	}
 }
-
+/***********************************************************************/
+/** Fonction principale du programme **/
 int mainProg(Arbre tree, int argc, char ** argv)
 {
-	if(argc <= 1)
+	if(argc <= 1) //Si il n'y a pas d'arguments
 	{
-		color(RED);
+		color(RED); //On passe la couleur du terminal en rouge
 		printf("Usage: %s [Option]\n", argv[0]);
 		fprintf(stderr, "Use --help as an option to open the help list\n");
-		resetColor;
+		resetColor; //On réinitialise la couleur du terminal
 		return EXIT_FAILURE;
 	}
-	if(strcmp(argv[1], "--help") == 0)
+	if(strcmp(argv[1], "--help") == 0) //Si on veut afficher l'aide
 	{
-		color(YELLOW);
+		color(YELLOW); //On passe la couleur du terminal en jaune
 		puts("Bienvenu dans l'aide de Code&EncodeMorse, voici les options utilisables:");
 		printf("Utilisation: %s [Options]\n", argv[0]);
 		printf("Vous pouvez utiliser les espaces afin de séparer les mots et utiliser '_' pour coller les lettres en morse\n");
 		printf("Exemple: %s -d ._. ..\n", argv[0]);
-		color(CYAN);
+		color(CYAN); //On passe la couleur du terminal en cyan
 		puts("-d [morse]\t\tDécode le morse passé en paramètre");
 		puts("-e [texte]\t\tEncode le texte en morse");
 		puts("-g\t\t\tPassage en affichage graphique");
 		puts("-a\t\t\tAffichage de la table de morse");
 		puts("--help\t\t\tAffiche cette aide");
-		resetColor;
+		resetColor; //On réinitialise la couleur du terminal
 	}
-	else if(strcmp(argv[1], "-a") == 0)
+	else if(strcmp(argv[1], "-a") == 0) //Si on veut afficher la table de morse
 		morseTable(tree);
-	else if(strcmp(argv[1], "-g") == 0)
+	else if(strcmp(argv[1], "-g") == 0) //Si on veut lancer le programme en graphique
 		return GRAPHIC;
-	else if(argc <= 2 || (strcmp(argv[1], "-d") != 0 && strcmp(argv[1], "-e") != 0))
+	else if(argc <= 2 || (strcmp(argv[1], "-d") != 0 && strcmp(argv[1], "-e") != 0)) //Si on a mis un argument différent de -d ou -e ou bien -d ou -e mais pas de texte/morse
 	{
 		color(RED);
 		printf("Usage: %s [Option]\n", argv[0]);
@@ -320,22 +332,22 @@ int mainProg(Arbre tree, int argc, char ** argv)
 		resetColor;
 		return EXIT_FAILURE;
 	}
-	else if(strcmp(argv[1], "-d") == 0)
+	else if(strcmp(argv[1], "-d") == 0) //Si on veut décoder du morse
 	{
 		printf("%s",morseDecypher(tree, argv[2]));
-		if(argc > 2)
-			for(int i = 3; i < argc; i++)
+		if(argc > 2) //Si on une chaîne avec des espaces
+			for(int i = 3; i < argc; i++) //On fait la meme opération pour tout les arguments suivants
 			{
 				printf("%s",morseDecypher(tree, " \0"));
 				printf("%s",morseDecypher(tree, argv[i]));
 			}
 		printf("\n");
 	}
-	else if(strcmp(argv[1], "-e") == 0)
+	else if(strcmp(argv[1], "-e") == 0) //Si on veut encoder du texte en morse
 	{
 		printf("%s", (morseCypher(tree, argv[2])));
-		if(argc > 2)
-			for(int i = 3; i < argc; i++)
+		if(argc > 2) //Si on a une chaîne avec des espaces
+			for(int i = 3; i < argc; i++) //On fait la meme opération pour tout les arguments suivants
 			{
 				printf("%s",morseCypher(tree, " \0"));
 				printf("%s", morseCypher(tree, argv[i]));

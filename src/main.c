@@ -1,4 +1,5 @@
 #include "../headers/morse.h"
+#include "../headers/graphic.h"
 
 int main(int argc, char ** argv)
 {
@@ -10,6 +11,11 @@ int main(int argc, char ** argv)
 			return EXIT_FAILURE;
 		break;
 		case GRAPHIC:
+			if(graphicInterface(tree) == EXIT_FAILURE)
+			{
+				destroyTree(tree), tree = NULL;
+				return EXIT_FAILURE;
+			}
 		break;
 	}
 	destroyTree(tree), tree = NULL;
