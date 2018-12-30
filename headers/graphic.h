@@ -15,6 +15,7 @@
 int graphicInterface(Arbre tree); //Interface graphique du programme
 int SDLnIMGnTTF_Initialize(); //Initialisation de la SDL2, IMG et TTF
 SDL_Texture * loadTexture(const char * file, SDL_Renderer * renderer); //Chargement de texture
+SDL_Texture * renderText(const char * text, const char * fontName, SDL_Color color, int fontSize, SDL_Renderer * renderer); //Copie du texte sur le rendu
 void renderTextureClip(SDL_Texture * texture, SDL_Renderer * renderer, SDL_Rect dest, SDL_Rect * clip); //Copie de la texture clipée sur le rendu
 void renderTexture(SDL_Texture * texture, SDL_Renderer * renderer, int x, int y, SDL_Rect * clip); //Copie de la texture sur le rendu
 #endif

@@ -69,15 +69,32 @@ int graphicInterface(Arbre tree)
 		return EXIT_FAILURE;
 	}
 
-	int xInput = 660, xOutput = 660, yInput = 450, yOutput = 600;
+	int xInput = 660, xOutput = 660, yInput = 450, yOutput = 600, iWinputText = 610, iHinputText = 51;
+	char * textInput = malloc(sizeof(char) * 61);
+	strcpy(textInput, "Put your text here !");
+	SDL_Color black = {0, 0, 0, 0xFF};
+	SDL_Texture * texte = renderText(textInput, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+	if(!texte)
+	{
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		TTF_Quit();
+		IMG_Quit();
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+	int xTexte = xInput + 20, yTexte = yInput + 20;
 
 	int quit = 0;
 	int hoverEncode = 0, OnClickEncode = 0;
+	int clickForText = 0;
 	Uint32 frameStart, frameTime;
+	SDL_StartTextInput();
 	while(!quit)
 	{
 		frameStart = SDL_GetTicks();
 		SDL_Event event;
+		int reRenderText = 0;
 		while(SDL_PollEvent(&event))
 		{
 			switch(event.type)
@@ -94,6 +111,11 @@ int graphicInterface(Arbre tree)
 							hoverEncode = 0;
 							OnClickEncode = 1;
 						}
+
+						else if((event.button.x >= xInput && event.button.x <= (xInput + iWinputText)) && (event.button.y >= yInput && event.button.y <= (yInput + iHinputText)))
+							clickForText = 1;
+						else if(clickForText)
+							clickForText = 0;
 					}
 				break;
 
@@ -125,6 +147,72 @@ int graphicInterface(Arbre tree)
 						OnClickEncode = 0;
 					}
 				break;
+
+				case SDL_KEYDOWN:
+					switch(event.key.keysym.sym)
+					{
+						case SDLK_BACKSPACE:
+							if(clickForText && strlen(textInput) > 0)
+							{
+								textInput[strlen(textInput) - 1] = 0;
+								reRenderText = 1;
+							}
+						break;
+
+						case SDLK_c:
+							if((SDL_GetModState() & KMOD_CTRL) && clickForText)
+								SDL_SetClipboardText(textInput);
+						break;
+
+						case SDLK_v:
+							if((SDL_GetModState() & KMOD_CTRL) && clickForText)
+							{
+								strcat(textInput, SDL_GetClipboardText());
+								reRenderText = 1;
+							}
+						break;
+					}
+				break;
+
+				case SDL_TEXTINPUT:
+					if(!((event.text.text[0] == 'c' || event.text.text[0] == 'C') && (event.text.text[0] == 'v' || event.text.text[0] == 'V') && SDL_GetModState() & KMOD_CTRL) && clickForText && strlen(textInput) < 60)
+					{
+						strcat(textInput, event.text.text);
+						reRenderText = 1;
+					}
+				break;
+			}
+		}
+
+		if(reRenderText)
+		{
+			SDL_DestroyTexture(texte);
+			if(strcmp(textInput, "") != 0)
+			{
+				texte = renderText(textInput, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+				if(!texte)
+				{
+					SDL_DestroyRenderer(renderer);
+					SDL_DestroyWindow(window);
+					TTF_Quit();
+					IMG_Quit();
+					SDL_Quit();
+					return EXIT_FAILURE;
+				}
+			}
+
+			else
+			{
+				texte = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+				if(!texte)
+				{
+					SDL_DestroyRenderer(renderer);
+					SDL_DestroyWindow(window);
+					TTF_Quit();
+					IMG_Quit();
+					SDL_Quit();
+					return EXIT_FAILURE;
+				}				
 			}
 		}
 
@@ -139,6 +227,7 @@ int graphicInterface(Arbre tree)
 			renderTexture(encode_btn, renderer, xEncode, yEncode, &encodeClips[0]);
 		renderTexture(inputText, renderer, xInput, yInput, NULL);
 		renderTexture(inputText, renderer, xOutput, yOutput, NULL);
+		renderTexture(texte, renderer, xTexte, yTexte, NULL);
 		SDL_RenderPresent(renderer);
 
 		frameTime = SDL_GetTicks() - frameStart;
@@ -147,14 +236,16 @@ int graphicInterface(Arbre tree)
 	}
 
 
-
+	SDL_StopTextInput();
 	SDL_DestroyTexture(background);
 	SDL_DestroyTexture(encode_btn);
+	SDL_DestroyTexture(texte);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
+	free(textInput);
 	return EXIT_SUCCESS;
 }
 
@@ -217,4 +308,30 @@ void renderTexture(SDL_Texture * texture, SDL_Renderer * renderer, int x, int y,
 		dest.h = clip->h;
 	}
 	renderTextureClip(texture, renderer, dest, clip);
+}
+
+SDL_Texture * renderText(const char * text, const char * fontName, SDL_Color color, int fontSize, SDL_Renderer * renderer)
+{
+	TTF_Font * font = TTF_OpenFont(fontName, fontSize);
+	if(!font)
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to open font: %s\n", TTF_GetError());
+		return NULL;
+	}
+
+	SDL_Surface * surface = TTF_RenderText_Blended(font, text, color);
+	if(!surface)
+	{
+		TTF_CloseFont(font);
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to apply text on surface: %s\n", TTF_GetError());
+		return NULL;
+	}
+
+	SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer, surface);
+	if(!texture)
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create texture: %s\n", SDL_GetError());
+
+	SDL_FreeSurface(surface);
+	TTF_CloseFont(font);
+	return texture;
 }
