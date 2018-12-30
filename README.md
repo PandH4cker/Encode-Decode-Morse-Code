@@ -12,7 +12,7 @@
 ---
 ### Notice that the help list is written in french /!\
 
-##### Usage:
+#### Usage:
 > In order to use this program you can specify as argument :
 +  --help  		*print the help list*
 +  -d [morse] 	*Decode the morse code*
