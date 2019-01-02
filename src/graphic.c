@@ -29,22 +29,14 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * background = loadTexture("../images/Background.png", renderer);
 	if(!background)
 	{
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		TTF_Quit();
-		IMG_Quit();
-		SDL_Quit();
+		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
 
 	SDL_Texture * encode_btn = loadTexture("../images/Encode_btnSprites.png", renderer);
 	if(!encode_btn)
 	{
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		TTF_Quit();
-		IMG_Quit();
-		SDL_Quit();
+		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
 
@@ -58,14 +50,36 @@ int graphicInterface(Arbre tree)
 		encodeClips[i].h = iHencode;
 	}
 
+	SDL_Texture * decode_btn = loadTexture("../images/Decode_btnSprites.png", renderer);
+	if(!decode_btn)
+	{
+		cleanUp(window, renderer);
+		return EXIT_FAILURE;
+	}
+
+	int iWdecode = 259, iHdecode = 67, xDecode = 435, yDecode = 0;
+	SDL_Rect decodeClips[3];
+	for(int i = 0; i < 3; i++)
+	{
+		decodeClips[i].x = i * iWdecode;
+		decodeClips[i].y = 0;
+		decodeClips[i].w = iWdecode;
+		decodeClips[i].h = iHdecode;
+	}
+
+	SDL_Texture * submit_btn = loadTexture("../images/Submit_btn.png", renderer);
+	if(!submit_btn)
+	{
+		cleanUp(window, renderer);
+		return EXIT_FAILURE;
+	}
+
+	int iWsubmit = 259, iHsubmit = 67, xSubmit = 825, ySubmit = 508;
+
 	SDL_Texture * inputText = loadTexture("../images/InputText.png", renderer);
 	if(!inputText)
 	{
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		TTF_Quit();
-		IMG_Quit();
-		SDL_Quit();
+		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
 
@@ -76,21 +90,28 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * texte = renderText(textInput, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 	if(!texte)
 	{
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		TTF_Quit();
-		IMG_Quit();
-		SDL_Quit();
+		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
 	int xTexte = xInput + 20, yTexte = yInput + 20;
 
-	int quit = 0;
-	int hoverEncode = 0, OnClickEncode = 0;
+	//char * outputText = strdup("Test");
+	SDL_Texture * output = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+	if(!output)
+	{
+		cleanUp(window, renderer);
+		return EXIT_FAILURE;
+	}
+	int xTexteOutput = xOutput + 20, yTexteOutput = yOutput + 20;
+
+	int hoverEncode = 0, OnClickEncode = 0, encodeSelect = 1;
+	int hoverDecode = 0, OnClickDecode = 0, decodeSelect = 0;
+	int hoverSubmit = 0, OnClickSubmit = 0;
+
 	int clickForText = 0;
 	Uint32 frameStart, frameTime;
 	SDL_StartTextInput();
-	while(!quit)
+	while(!SDL_QuitRequested())
 	{
 		frameStart = SDL_GetTicks();
 		SDL_Event event;
@@ -99,20 +120,32 @@ int graphicInterface(Arbre tree)
 		{
 			switch(event.type)
 			{
-				case SDL_QUIT:
-					quit = 1;
-				break;
-
 				case SDL_MOUSEBUTTONDOWN:
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
-						if((event.button.x >= 0 && event.button.x <= iWencode) && (event.button.y >= 0 && event.button.y <= iHencode))
+						if(isInRegion(event.button.x, event.button.y, xEncode, xEncode + iWencode, yEncode, yEncode + iHencode))
 						{
 							hoverEncode = 0;
 							OnClickEncode = 1;
+							encodeSelect = 1;
+							decodeSelect = 0;
 						}
 
-						else if((event.button.x >= xInput && event.button.x <= (xInput + iWinputText)) && (event.button.y >= yInput && event.button.y <= (yInput + iHinputText)))
+						else if(isInRegion(event.button.x, event.button.y, xDecode, xDecode + iWdecode, yDecode, yDecode + iHdecode)) 
+						{
+							hoverDecode = 0;
+							OnClickDecode = 1;
+							encodeSelect = 0;
+							decodeSelect = 1;
+						}
+
+						else if(isInRegion(event.button.x, event.button.y, xSubmit, xSubmit + iWsubmit, ySubmit, ySubmit + iHsubmit))
+						{
+							hoverSubmit = 0;
+							OnClickSubmit = 1;
+						}
+
+						else if(isInRegion(event.button.x, event.button.y, xInput, xInput + iWinputText, yInput, yInput + iHinputText)) 
 							clickForText = 1;
 						else if(clickForText)
 							clickForText = 0;
@@ -122,29 +155,48 @@ int graphicInterface(Arbre tree)
 				case SDL_MOUSEBUTTONUP:
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
-						if((event.button.x >= 0 && event.button.x <= iWencode) && (event.button.y >= 0 && event.button.y <= iHencode))
+						if(isInRegion(event.button.x, event.button.y, xEncode, xEncode + iWencode, yEncode, yEncode + iHencode))
 						{
 							hoverEncode = 1;
 							OnClickEncode = 0;
 						}
+
+						else if(isInRegion(event.button.x, event.button.y, xDecode, xDecode + iWdecode, yDecode, yDecode + iHdecode))
+						{
+							hoverDecode = 1;
+							OnClickDecode = 0;
+						}
+
 						else
 						{
 							hoverEncode = 0;
 							OnClickEncode = 0;
+							hoverDecode = 0;
+							OnClickDecode = 0;
+							hoverSubmit = 0;
+							OnClickSubmit = 0;
 						}						
 					}
 				break;
 
 				case SDL_MOUSEMOTION:
-					if((event.motion.x >= 0 && event.motion.x <= iWencode) && (event.motion.y >= 0 && event.motion.y <= iHencode))
+					if(isInRegion(event.motion.x, event.motion.y, xEncode, xEncode + iWencode, yEncode, yEncode + iHencode))
 					{
 						if(!OnClickEncode)
 							hoverEncode = 1;
+					}
+
+					else if(isInRegion(event.motion.x, event.motion.y, xDecode, xDecode + iWdecode, yDecode, yDecode + iHdecode))
+					{
+						if(!OnClickDecode)
+							hoverDecode = 1;
 					}
 					else
 					{
 						hoverEncode = 0;
 						OnClickEncode = 0;
+						hoverDecode = 0;
+						OnClickDecode = 0;
 					}
 				break;
 
@@ -192,11 +244,7 @@ int graphicInterface(Arbre tree)
 				texte = renderText(textInput, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 				if(!texte)
 				{
-					SDL_DestroyRenderer(renderer);
-					SDL_DestroyWindow(window);
-					TTF_Quit();
-					IMG_Quit();
-					SDL_Quit();
+					cleanUp(window, renderer);
 					return EXIT_FAILURE;
 				}
 			}
@@ -206,28 +254,63 @@ int graphicInterface(Arbre tree)
 				texte = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 				if(!texte)
 				{
-					SDL_DestroyRenderer(renderer);
-					SDL_DestroyWindow(window);
-					TTF_Quit();
-					IMG_Quit();
-					SDL_Quit();
+					cleanUp(window, renderer);
 					return EXIT_FAILURE;
 				}				
+			}
+		}
+
+		if(OnClickSubmit)
+		{
+			SDL_DestroyTexture(output);
+			if(decodeSelect)
+			{
+				//free(outputText);
+				//outputText = morseDecypher(tree, textInput);
+				output = renderText(morseDecypher(tree, textInput), "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+				if(!output)
+				{
+					cleanUp(window, renderer);
+					return EXIT_FAILURE;
+				}
+			}
+			else if(encodeSelect)
+			{
+				//free(outputText);
+				//outputText = morseCypher(tree, textInput);
+				output = renderText(morseCypher(tree, textInput), "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+				if(!output)
+				{
+					cleanUp(window, renderer);
+					return EXIT_FAILURE;
+				}
 			}
 		}
 
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
 		SDL_RenderClear(renderer);
 		renderTexture(background, renderer, 0, 0, NULL);
+
 		if(hoverEncode)
 			renderTexture(encode_btn, renderer, xEncode, yEncode, &encodeClips[1]);			
 		else if(OnClickEncode)
 			renderTexture(encode_btn, renderer, xEncode, yEncode, &encodeClips[2]);
 		else
 			renderTexture(encode_btn, renderer, xEncode, yEncode, &encodeClips[0]);
+
+		if(hoverDecode)
+			renderTexture(decode_btn, renderer, xDecode, yDecode, &decodeClips[1]);
+		else if(OnClickDecode)
+			renderTexture(decode_btn, renderer, xDecode, yDecode, &decodeClips[2]);
+		else
+			renderTexture(decode_btn, renderer, xDecode, yDecode, &decodeClips[0]);
+
+		renderTexture(submit_btn, renderer, xSubmit, ySubmit, NULL);
+
 		renderTexture(inputText, renderer, xInput, yInput, NULL);
 		renderTexture(inputText, renderer, xOutput, yOutput, NULL);
 		renderTexture(texte, renderer, xTexte, yTexte, NULL);
+		renderTexture(output, renderer, xTexteOutput, yTexteOutput, NULL);
 		SDL_RenderPresent(renderer);
 
 		frameTime = SDL_GetTicks() - frameStart;
@@ -240,11 +323,11 @@ int graphicInterface(Arbre tree)
 	SDL_DestroyTexture(background);
 	SDL_DestroyTexture(encode_btn);
 	SDL_DestroyTexture(texte);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	TTF_Quit();
-	IMG_Quit();
-	SDL_Quit();
+	SDL_DestroyTexture(output);
+	SDL_DestroyTexture(submit_btn);
+	SDL_DestroyTexture(inputText);
+	SDL_DestroyTexture(decode_btn);
+	cleanUp(window, renderer);
 	free(textInput);
 	return EXIT_SUCCESS;
 }
@@ -334,4 +417,20 @@ SDL_Texture * renderText(const char * text, const char * fontName, SDL_Color col
 	SDL_FreeSurface(surface);
 	TTF_CloseFont(font);
 	return texture;
+}
+
+bool isInRegion(int x, int y, int xInf, int xSup, int yInf, int ySup)
+{
+	if((x >= xInf && x <= xSup) && (y >= yInf && y <= ySup))
+		return true;
+	return false;
+}
+
+void cleanUp(SDL_Window * window, SDL_Renderer * renderer)
+{
+	SDL_DestroyWindow(window);
+	SDL_DestroyRenderer(renderer);
+	TTF_Quit();
+	IMG_Quit();
+	SDL_Quit();
 }
