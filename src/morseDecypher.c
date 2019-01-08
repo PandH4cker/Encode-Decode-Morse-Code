@@ -148,7 +148,8 @@ char * morseCypher(Arbre tree, char * text)
 		if(text[i] != '\0' && text[i] != ' ') //Si on n'est pas arrivé à la fin de la chaîne et que ce n'est pas un espace
 			strcat(current_parsed, "_\0"); //On ajoute le séparateur
 		find = 0;
-
+		if(text[i+1] == '\0')
+			strcat(current_parsed, "\0");
 	}
 	return parsed;
 }

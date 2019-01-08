@@ -36,6 +36,7 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * encode_btn = loadTexture("../images/Encode_btnSprites.png", renderer);
 	if(!encode_btn)
 	{
+		SDL_DestroyTexture(background);
 		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
@@ -53,6 +54,8 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * decode_btn = loadTexture("../images/Decode_btnSprites.png", renderer);
 	if(!decode_btn)
 	{
+		SDL_DestroyTexture(background);
+		SDL_DestroyTexture(encode_btn);
 		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
@@ -70,6 +73,9 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * submit_btn = loadTexture("../images/Submit_btn.png", renderer);
 	if(!submit_btn)
 	{
+		SDL_DestroyTexture(background);
+		SDL_DestroyTexture(encode_btn);
+		SDL_DestroyTexture(decode_btn);
 		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
@@ -79,6 +85,10 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * inputText = loadTexture("../images/InputText.png", renderer);
 	if(!inputText)
 	{
+		SDL_DestroyTexture(background);
+		SDL_DestroyTexture(encode_btn);
+		SDL_DestroyTexture(decode_btn);
+		SDL_DestroyTexture(submit_btn);
 		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
@@ -90,15 +100,27 @@ int graphicInterface(Arbre tree)
 	SDL_Texture * texte = renderText(textInput, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 	if(!texte)
 	{
+		SDL_DestroyTexture(background);
+		SDL_DestroyTexture(encode_btn);
+		SDL_DestroyTexture(decode_btn);
+		SDL_DestroyTexture(submit_btn);
+		SDL_DestroyTexture(inputText);
 		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
 	int xTexte = xInput + 20, yTexte = yInput + 20;
 
-	//char * outputText = strdup("Test");
+	char * outputText = malloc(sizeof(char) * 80);
+	memset(outputText, 0, strlen(outputText));
 	SDL_Texture * output = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 	if(!output)
 	{
+		SDL_DestroyTexture(background);
+		SDL_DestroyTexture(encode_btn);
+		SDL_DestroyTexture(decode_btn);
+		SDL_DestroyTexture(submit_btn);
+		SDL_DestroyTexture(inputText);
+		SDL_DestroyTexture(texte);
 		cleanUp(window, renderer);
 		return EXIT_FAILURE;
 	}
@@ -244,6 +266,13 @@ int graphicInterface(Arbre tree)
 				texte = renderText(textInput, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 				if(!texte)
 				{
+					SDL_DestroyTexture(background);
+					SDL_DestroyTexture(encode_btn);
+					SDL_DestroyTexture(decode_btn);
+					SDL_DestroyTexture(submit_btn);
+					SDL_DestroyTexture(inputText);
+					SDL_DestroyTexture(texte);
+					SDL_DestroyTexture(output);
 					cleanUp(window, renderer);
 					return EXIT_FAILURE;
 				}
@@ -254,6 +283,13 @@ int graphicInterface(Arbre tree)
 				texte = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
 				if(!texte)
 				{
+					SDL_DestroyTexture(background);
+					SDL_DestroyTexture(encode_btn);
+					SDL_DestroyTexture(decode_btn);
+					SDL_DestroyTexture(submit_btn);
+					SDL_DestroyTexture(inputText);
+					SDL_DestroyTexture(texte);
+					SDL_DestroyTexture(output);					
 					cleanUp(window, renderer);
 					return EXIT_FAILURE;
 				}				
@@ -262,27 +298,96 @@ int graphicInterface(Arbre tree)
 
 		if(OnClickSubmit)
 		{
+			OnClickSubmit = 0;
 			SDL_DestroyTexture(output);
 			if(decodeSelect)
 			{
-				//free(outputText);
-				//outputText = morseDecypher(tree, textInput);
-				output = renderText(morseDecypher(tree, textInput), "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
-				if(!output)
+				if(strcmp(textInput, "\0") != 0)
 				{
-					cleanUp(window, renderer);
-					return EXIT_FAILURE;
+					memset(outputText, 0, strlen(outputText));
+					char ** splitted = str_split(textInput, " \0");
+					if(!splitted)
+					{
+						fprintf(stderr, "Unable to split the string\n");
+						return EXIT_FAILURE;
+					}
+					for(int i = 0; splitted[i] != NULL; i++)
+					{
+						strcat(outputText, morseDecypher(tree, splitted[i]));
+						if(splitted[i+1] != NULL)
+							strcat(outputText, " \0");
+					}
+					free(splitted); splitted = NULL;
+					output = renderText(outputText, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+					if(!output)
+					{
+						SDL_DestroyTexture(background);
+						SDL_DestroyTexture(encode_btn);
+						SDL_DestroyTexture(decode_btn);
+						SDL_DestroyTexture(submit_btn);
+						SDL_DestroyTexture(inputText);
+						SDL_DestroyTexture(texte);					
+						cleanUp(window, renderer);
+						return EXIT_FAILURE;
+					}
+				}
+				else
+				{
+					SDL_Texture * output = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+					if(!output)
+					{
+						SDL_DestroyTexture(background);
+						SDL_DestroyTexture(encode_btn);
+						SDL_DestroyTexture(decode_btn);
+						SDL_DestroyTexture(submit_btn);
+						SDL_DestroyTexture(inputText);
+						SDL_DestroyTexture(texte);
+						cleanUp(window, renderer);
+						return EXIT_FAILURE;
+					}										
 				}
 			}
 			else if(encodeSelect)
 			{
-				//free(outputText);
-				//outputText = morseCypher(tree, textInput);
-				output = renderText(morseCypher(tree, textInput), "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
-				if(!output)
+				if(strcmp(textInput, "\0") != 0)
 				{
-					cleanUp(window, renderer);
-					return EXIT_FAILURE;
+					memset(outputText, 0, strlen(outputText));
+					strcpy(outputText, morseCypher(tree, textInput));
+					int pass = 0;
+					int i = 0;
+					while(outputText[i] != '.' && outputText[i] != '-')
+					{
+							pass++;
+							i++;
+					}
+					char * outputTextPass = outputText + pass;
+					output = renderText(outputTextPass, "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+					if(!output)
+					{
+						SDL_DestroyTexture(background);
+						SDL_DestroyTexture(encode_btn);
+						SDL_DestroyTexture(decode_btn);
+						SDL_DestroyTexture(submit_btn);
+						SDL_DestroyTexture(inputText);
+						SDL_DestroyTexture(texte);					
+						cleanUp(window, renderer);
+						return EXIT_FAILURE;
+					}
+				}
+				else
+				{
+					SDL_Texture * output = renderText(" \0", "../fonts/arial_narrow_7/arial_narrow_7.ttf", black, 24, renderer);
+					if(!output)
+					{
+						SDL_DestroyTexture(background);
+						SDL_DestroyTexture(encode_btn);
+						SDL_DestroyTexture(decode_btn);
+						SDL_DestroyTexture(submit_btn);
+						SDL_DestroyTexture(inputText);
+						SDL_DestroyTexture(texte);
+						cleanUp(window, renderer);
+						return EXIT_FAILURE;
+					}					
 				}
 			}
 		}
@@ -322,13 +427,14 @@ int graphicInterface(Arbre tree)
 	SDL_StopTextInput();
 	SDL_DestroyTexture(background);
 	SDL_DestroyTexture(encode_btn);
-	SDL_DestroyTexture(texte);
-	SDL_DestroyTexture(output);
+	SDL_DestroyTexture(decode_btn);
 	SDL_DestroyTexture(submit_btn);
 	SDL_DestroyTexture(inputText);
-	SDL_DestroyTexture(decode_btn);
+	SDL_DestroyTexture(texte);
+	SDL_DestroyTexture(output);	
 	cleanUp(window, renderer);
 	free(textInput);
+	free(outputText);
 	return EXIT_SUCCESS;
 }
 
@@ -433,4 +539,38 @@ void cleanUp(SDL_Window * window, SDL_Renderer * renderer)
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
+}
+
+char ** str_split(char * s, const char * ct)
+{
+	char ** tab = NULL;
+	if(s && ct)
+	{
+		int i;
+		char * cs = NULL;
+		size_t size = 1;
+		for(i = 0; (cs = strtok(s, ct)); i++)
+		{
+			if(size <= i + 1)
+			{
+				void * tmp = NULL;
+				size <<= 1;
+				tmp = realloc(tab, sizeof(*tab) * size);
+				if(tmp)
+					tab = tmp;
+				else
+				{
+					fprintf(stderr, "Unable to allocate memory\n");
+					free(tab); tab = NULL;
+					return NULL;
+				}
+			}
+
+			tab[i] = cs;
+			s = NULL;
+		}
+
+		tab[i] = NULL;
+	}
+	return tab;
 }
