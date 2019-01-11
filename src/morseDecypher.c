@@ -318,6 +318,7 @@ int mainProg(Arbre tree, int argc, char ** argv)
 		puts("-e [texte]\t\tEncode le texte en morse");
 		puts("-g\t\t\tPassage en affichage graphique");
 		puts("-a\t\t\tAffichage de la table de morse");
+		puts("-f [filename] -d/-e\tDecode ou encode un fichier");
 		puts("--help\t\t\tAffiche cette aide");
 		resetColor; //On réinitialise la couleur du terminal
 	}

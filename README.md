@@ -19,6 +19,7 @@
 +  -e [text]	*Encode the text in morse code*
 +  -g 			*Launch the program with SDL2*
 +  -a 			*Print  the morse table*
++  -f [filename] -d/-e 	*Decode or Encode a file*
 ---
 ### [READ THE LICENSE](https://github.com/MrrRaph/Encode-Decode-Morse-Code/blob/master/LICENSE)
 
