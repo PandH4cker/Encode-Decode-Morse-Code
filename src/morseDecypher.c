@@ -325,7 +325,7 @@ int mainProg(Arbre tree, int argc, char ** argv)
 		morseTable(tree);
 	else if(strcmp(argv[1], "-g") == 0) //Si on veut lancer le programme en graphique
 		return GRAPHIC;
-	else if(argc <= 2 || (strcmp(argv[1], "-d") != 0 && strcmp(argv[1], "-e") != 0)) //Si on a mis un argument différent de -d ou -e ou bien -d ou -e mais pas de texte/morse
+	else if(argc <= 2 || (strcmp(argv[1], "-d") != 0 && strcmp(argv[1], "-e") != 0 && strcmp(argv[1], "-f") != 0)) //Si on a mis un argument différent de -d ou -e ou bien -d ou -e mais pas de texte/morse
 	{
 		color(RED);
 		printf("Usage: %s [Option]\n", argv[0]);
@@ -355,5 +355,161 @@ int mainProg(Arbre tree, int argc, char ** argv)
 			}
 		printf("\n");
 	}
+	else if(strcmp(argv[1], "-f") == 0)
+	{
+		if(argc < 4)
+		{
+			color(RED);
+			printf("Usage %s [Option]\n", argv[0]);
+			fprintf(stderr, "Use --help as an option to open the help list\n");
+			resetColor;
+			return EXIT_FAILURE;
+		}
+
+		FILE * file = fopen(argv[2], "r");
+		if(!file)
+		{
+			color(RED);
+			printf("File opening failure..\n");
+			fprintf(stderr, "Unable to open : %s\n", argv[2]);
+			fprintf(stderr, "Use --help as an option to open the help list\n");
+			resetColor;
+			return EXIT_FAILURE;			
+		}
+
+		if(strcmp(argv[3], "-e") == 0)
+		{
+			char * filenameOutput = malloc(sizeof(char) * 60);
+			if(!filenameOutput)
+			{
+				color(RED);
+				printf("Unable to allocate memory\n");
+				fprintf(stderr, "Insuffisant memory\n");
+				fprintf(stderr, "Use --help as an option to open the help list\n");
+				resetColor;
+				return EXIT_FAILURE;			
+
+			}
+			strcpy(filenameOutput, argv[2]);
+			strcat(filenameOutput, "_encoded\0");
+			FILE * outputFile = fopen(filenameOutput, "w");
+			if(!outputFile)
+			{
+				color(RED);
+				printf("File creation failure..\n");
+				fprintf(stderr, "Unable to create the file : %s\n", filenameOutput);
+				fprintf(stderr, "Use --help as an option to open the help list\n");
+				resetColor;
+				return EXIT_FAILURE;				
+			}
+			free(filenameOutput);
+			char buff[255];
+			while(fgets(buff, 255, file) != NULL)
+				fprintf(outputFile, "%s\n", morseCypher(tree, buff));
+			fclose(outputFile);
+		}
+
+		else if(strcmp(argv[3], "-d") == 0)
+		{
+			char * filenameOutput = malloc(sizeof(char) * 60);
+			if(!filenameOutput)
+			{
+				color(RED);
+				printf("Unable to allocate memory\n");
+				fprintf(stderr, "Insuffisant memory\n");
+				fprintf(stderr, "Use --help as an option to open the help list\n");
+				resetColor;
+				return EXIT_FAILURE;			
+
+			}
+			strcpy(filenameOutput, argv[2]);
+			strcat(filenameOutput, "_decoded\0");
+			FILE * outputFile = fopen(filenameOutput, "w");
+			if(!outputFile)
+			{
+				color(RED);
+				printf("File creation failure..\n");
+				fprintf(stderr, "Unable to create the file : %s\n", filenameOutput);
+				fprintf(stderr, "Use --help as an option to open the help list\n");
+				resetColor;
+				return EXIT_FAILURE;				
+			}
+			free(filenameOutput);
+			char buff[255];
+			while(fgets(buff, 255, file) != NULL)
+			{
+				char * outputDecypher = malloc(sizeof(char) * 255);
+				char ** splitted = str_split(buff, " \0");
+				if(!splitted)
+				{
+					color(RED);
+					printf("str_split error\n");
+					fprintf(stderr, "Unable to split the string\n");
+					fprintf(stderr, "Use --help as an option to open the help list\n");
+					resetColor;
+					return EXIT_FAILURE;				
+
+				}
+
+				for(int i = 0; splitted[i] != NULL; i++)
+				{
+					strcat(outputDecypher, morseDecypher(tree, splitted[i]));
+					if(splitted[i+1] != NULL)
+						strcat(outputDecypher, " \0");
+				}
+				free(splitted); splitted = NULL;
+
+				fprintf(outputFile, "%s\n", outputDecypher);
+			}
+			fclose(outputFile);
+		}
+
+		else
+		{
+			color(RED);
+			printf("Unable to do your options\n");
+			fprintf(stderr, "%s is not an argument for the %s option\n", argv[3], argv[1]);
+			fprintf(stderr, "Use --help as an option to open the help list\n");
+			resetColor;
+			return EXIT_FAILURE;						
+		}
+
+		fclose(file);	
+	}
 	return EXIT_SUCCESS;
+}
+
+/** Split une chaîne de caractère par un délimiteur (const char * ct) et renvoie sous forme de tableau **/
+char ** str_split(char * s, const char * ct)
+{
+	char ** tab = NULL;
+	if(s && ct) //Si les chaînes ne sont pas vides
+	{
+		int i;
+		char * cs = NULL;
+		size_t size = 1; // Taille initiale de 1 à notre tableau
+		for(i = 0; (cs = strtok(s, ct)); i++) //Tant que strtok(...) ne nous renvoi pas NULL
+		{
+			if(size <= i + 1) //Si la taille du tableau est inférieure à la prochaine itération
+			{
+				void * tmp = NULL; //On crée une variable temp pour réallouer notre tableau
+				size <<= 1; //On multiplie la taille par 2 (2^1)
+				tmp = realloc(tab, sizeof(*tab) * size); //On réalloue via tmp
+				if(tmp) //Si tout c'est bien passé tmp != NULL
+					tab = tmp;
+				else
+				{
+					fprintf(stderr, "Unable to allocate memory\n");
+					free(tab); tab = NULL;
+					return NULL;
+				}
+			}
+
+			tab[i] = cs; //On ajoute à l'indice i la chaîne tronquée
+			s = NULL;
+		}
+
+		tab[i] = NULL; //On passe à NULL le dernier indice du tableau
+	}
+	return tab;
 }

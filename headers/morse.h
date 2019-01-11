@@ -47,6 +47,7 @@ Arbre initForMorse(); //Construction de l'arbre
 char seekChar(Arbre tree, char * morse); //Recherche d'un caractère dans l'arbre
 char * morseDecypher(Arbre tree, char * morse); //Décodage du corde morse
 char * morseCypher(Arbre tree, char * text); //Encodage du code morse
+char ** str_split(char * s, const char * ct); //Split une chaîne de caractère par un délimiteur (const char * ct) et renvoie sous forme de tableau
 void morseTable(Arbre tree); //Affichage de la table morse
 void destroyTree(Arbre tree); //Destruction de l'arbre
 int mainProg(Arbre tree, int argc, char ** argv); //Fonction principale du programme

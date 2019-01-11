@@ -540,37 +540,3 @@ void cleanUp(SDL_Window * window, SDL_Renderer * renderer)
 	IMG_Quit();
 	SDL_Quit();
 }
-
-char ** str_split(char * s, const char * ct)
-{
-	char ** tab = NULL;
-	if(s && ct)
-	{
-		int i;
-		char * cs = NULL;
-		size_t size = 1;
-		for(i = 0; (cs = strtok(s, ct)); i++)
-		{
-			if(size <= i + 1)
-			{
-				void * tmp = NULL;
-				size <<= 1;
-				tmp = realloc(tab, sizeof(*tab) * size);
-				if(tmp)
-					tab = tmp;
-				else
-				{
-					fprintf(stderr, "Unable to allocate memory\n");
-					free(tab); tab = NULL;
-					return NULL;
-				}
-			}
-
-			tab[i] = cs;
-			s = NULL;
-		}
-
-		tab[i] = NULL;
-	}
-	return tab;
-}
