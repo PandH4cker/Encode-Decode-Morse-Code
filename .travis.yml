@@ -1,3 +1,3 @@
 language: c
 compiler: gcc
-install: sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+install: sudo aptitude install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
