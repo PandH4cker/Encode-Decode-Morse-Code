@@ -1,3 +1,4 @@
 language: c
 compiler: gcc
 install: aptitude install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+script: src/make
