@@ -21,5 +21,11 @@
 +  -a 			*Print  the morse table*
 +  -f [filename] -d/-e 	*Decode or Encode a file*
 ---
+### Main View:
+<img src="./MainView.png"
+     alt="Main View"
+     style="float: left; margin-right: 10px;" />
+
+---
 ### [READ THE LICENSE](https://github.com/MrrRaph/Encode-Decode-Morse-Code/blob/master/LICENSE)
 
